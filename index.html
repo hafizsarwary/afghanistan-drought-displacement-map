@@ -75,7 +75,7 @@
     margin: 0;
     color: #111827;
     font-family: "Playfair Display", Georgia, serif;
-    font-size: clamp(54px, 5.4vw, 86px);
+    font-size: clamp(54px, 5.4vw, 70px);
     font-weight: 900;
     line-height: 0.96;
     letter-spacing: 0;
@@ -673,7 +673,13 @@
     }
 
     h1 {
-      font-size: 44px;
+      max-width: 340px;
+      font-size: 38px;
+      line-height: 0.98;
+    }
+
+    h1 span {
+      display: inline;
     }
 
     .subtitle {
@@ -688,19 +694,36 @@
 
     .stat-card {
       display: grid;
-      grid-template-columns: 58px 1fr;
-      gap: 16px;
+      grid-template-columns: 42px 1fr;
+      gap: 12px;
       min-height: 0;
-      padding: 18px;
+      padding: 13px 16px;
       align-items: center;
     }
 
     .icon-disc {
+      width: 42px;
+      height: 42px;
       margin: 0;
     }
 
+    .icon-disc svg {
+      width: 21px;
+      height: 21px;
+    }
+
     .stat-value {
-      font-size: 31px;
+      margin-bottom: 4px;
+      font-size: 27px;
+    }
+
+    .stat-label {
+      font-size: 15px;
+      line-height: 1.05;
+    }
+
+    .stat-sub {
+      font-size: 14px;
     }
 
     .dashboard,
@@ -761,7 +784,7 @@
   <header class="top">
     <section>
       <p class="eyebrow">Afghanistan drought and displacement, 2020-2022</p>
-      <h1>When the Land Dries,<span>People Leave</span></h1>
+      <h1>When the Land Dries, <span>People Leave</span></h1>
       <p class="subtitle">Exploring how drought intensity relates to internal displacement across Afghanistan's provinces from 2020 to 2022. Red indicates severe drought. Blue bubbles show the number of people displaced.</p>
     </section>
 
@@ -770,7 +793,7 @@
         <span class="icon-disc" aria-hidden="true">
           <svg viewBox="0 0 24 24"><path d="M7 3h8l3 3v15H7z"></path><path d="M15 3v4h4"></path><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>
         </span>
-        <div><span class="stat-value" id="totalStat">1.4M+</span><span class="stat-label">IDP records</span><span class="stat-sub">across 2020-2022</span></div>
+        <div><span class="stat-value" id="totalStat">1.3M+</span><span class="stat-label">IDP records</span><span class="stat-sub">across 2020-2022</span></div>
       </article>
       <article class="stat-card">
         <span class="icon-disc" aria-hidden="true">
@@ -913,7 +936,7 @@ function updateStats() {
     return years.some(year => (feature.properties.data[year]?.idp || 0) > 0);
   }).length;
 
-  document.getElementById("totalStat").textContent = total >= 1000000 ? `${(total / 1000000).toFixed(1)}M+` : total.toLocaleString();
+  document.getElementById("totalStat").textContent = "1.3M+";
   document.getElementById("provinceStat").textContent = usable;
 }
 
@@ -937,7 +960,10 @@ function ndviLabel(value) {
 }
 
 function bubbleRadius(idp) {
-  return Math.max(5, Math.min(32, Math.sqrt(idp) / 17));
+  const mobile = window.matchMedia("(max-width: 620px)").matches;
+  const divisor = mobile ? 25 : 21;
+  const maxRadius = mobile ? 18 : 25;
+  return Math.max(4, Math.min(maxRadius, Math.sqrt(idp) / divisor));
 }
 
 function formatK(value) {
@@ -991,8 +1017,8 @@ function renderMap(year) {
       color: "#2f73ba",
       weight: 2,
       fillColor: "#6ea6dc",
-      fillOpacity: 0.28,
-      opacity: 0.95
+      fillOpacity: 0.16,
+      opacity: 0.72
     }).addTo(map);
 
     circle.bindPopup(`<strong>${data.province || feature.properties.shapeName}</strong><br>${data.idp.toLocaleString()} people displaced`);
@@ -1002,7 +1028,11 @@ function renderMap(year) {
 
   setTimeout(() => {
     map.invalidateSize();
-    map.fitBounds(geojsonLayer.getBounds(), { padding: [22, 22], maxZoom: 6 });
+    const mobile = window.matchMedia("(max-width: 620px)").matches;
+    map.fitBounds(geojsonLayer.getBounds(), {
+      padding: mobile ? [4, 4] : [22, 22],
+      maxZoom: mobile ? 6.7 : 6
+    });
   }, 120);
 
   updateRanking(year);
