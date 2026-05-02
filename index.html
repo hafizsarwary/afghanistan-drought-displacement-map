@@ -1,0 +1,871 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>When the Land Dries Up — Afghanistan</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+  :root {
+    --sand: #f5efe6;
+    --dust: #d4b896;
+    --soil: #8b5e3c;
+    --drought-red: #c0392b;
+    --drought-orange: #e67e22;
+    --drought-yellow: #f1c40f;
+    --normal: #ecf0f1;
+    --green: #27ae60;
+    --ink: #1a1008;
+    --paper: #faf7f2;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: var(--ink);
+    color: var(--sand);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* HEADER */
+  .header {
+    position: relative;
+    padding: 48px 48px 32px;
+    background: var(--ink);
+    border-bottom: 1px solid #2a1f14;
+    z-index: 10;
+  }
+
+  .header-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 32px;
+    align-items: end;
+  }
+
+  .eyebrow {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--drought-orange);
+    margin-bottom: 12px;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(28px, 4vw, 52px);
+    font-weight: 900;
+    line-height: 1.05;
+    color: var(--sand);
+    max-width: 700px;
+  }
+
+  h1 em {
+    color: var(--drought-red);
+    font-style: normal;
+  }
+
+  .subtitle {
+    margin-top: 16px;
+    font-size: 15px;
+    font-weight: 300;
+    color: var(--dust);
+    max-width: 580px;
+    line-height: 1.7;
+  }
+
+  .data-credit {
+    font-size: 11px;
+    color: #5a4a3a;
+    margin-top: 12px;
+    font-weight: 400;
+  }
+
+  /* STATS BAR */
+  .stats-bar {
+    background: #120e09;
+    padding: 20px 48px;
+    border-bottom: 1px solid #2a1f14;
+  }
+
+  .stats-inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    gap: 48px;
+    align-items: center;
+  }
+
+  .stat {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .stat-number {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--drought-orange);
+    line-height: 1;
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: #7a6050;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-top: 4px;
+  }
+
+  .stat-divider {
+    width: 1px;
+    height: 40px;
+    background: #2a1f14;
+  }
+
+  /* MAIN LAYOUT */
+  .main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 32px 48px 48px;
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 32px;
+  }
+
+  /* MAP */
+  .map-container {
+    position: relative;
+    border-radius: 4px;
+    overflow: hidden;
+    border: 1px solid #2a1f14;
+  }
+
+  #map {
+    height: 520px;
+    width: 100%;
+    background: #0d0a07;
+  }
+
+  .map-overlay-title {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    z-index: 1000;
+    background: rgba(10,7,4,0.85);
+    backdrop-filter: blur(8px);
+    padding: 10px 16px;
+    border-radius: 3px;
+    border-left: 3px solid var(--drought-orange);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--sand);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  /* TIMELINE */
+  .timeline {
+    margin-top: 16px;
+    background: #120e09;
+    border: 1px solid #2a1f14;
+    border-radius: 4px;
+    padding: 24px 28px;
+  }
+
+  .timeline-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dust);
+    margin-bottom: 20px;
+  }
+
+  .year-buttons {
+    display: flex;
+    gap: 8px;
+  }
+
+  .year-btn {
+    flex: 1;
+    padding: 14px 0;
+    background: transparent;
+    border: 1px solid #2a1f14;
+    border-radius: 3px;
+    color: #5a4a3a;
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .year-btn::after {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--drought-orange);
+    transform: scaleX(0);
+    transition: transform 0.2s ease;
+  }
+
+  .year-btn:hover {
+    color: var(--sand);
+    border-color: #3a2a1a;
+  }
+
+  .year-btn.active {
+    background: #1a1008;
+    border-color: var(--drought-orange);
+    color: var(--drought-orange);
+  }
+
+  .year-btn.active::after {
+    transform: scaleX(1);
+  }
+
+  .year-context {
+    margin-top: 16px;
+    font-size: 13px;
+    color: var(--dust);
+    line-height: 1.6;
+    min-height: 44px;
+    font-style: italic;
+  }
+
+  /* SIDEBAR */
+  .sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* LEGEND */
+  .legend-card {
+    background: #120e09;
+    border: 1px solid #2a1f14;
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .card-title {
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: var(--drought-orange);
+    margin-bottom: 16px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+    font-size: 13px;
+    color: var(--dust);
+  }
+
+  .legend-color {
+    width: 28px;
+    height: 14px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-divider {
+    border: none;
+    border-top: 1px solid #2a1f14;
+    margin: 16px 0;
+  }
+
+  .legend-circles {
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    padding: 8px 0;
+  }
+
+  .circle-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    color: #5a4a3a;
+  }
+
+  .legend-circle {
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.4);
+    border-radius: 50%;
+  }
+
+  /* PROVINCE INFO */
+  .province-card {
+    background: #120e09;
+    border: 1px solid #2a1f14;
+    border-radius: 4px;
+    padding: 20px;
+    flex: 1;
+    min-height: 200px;
+  }
+
+  .province-placeholder {
+    color: #3a2a1a;
+    font-size: 13px;
+    font-style: italic;
+    line-height: 1.6;
+    padding-top: 8px;
+  }
+
+  .province-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--sand);
+    margin-bottom: 4px;
+  }
+
+  .province-year {
+    font-size: 11px;
+    color: var(--drought-orange);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+  }
+
+  .metric {
+    margin-bottom: 16px;
+  }
+
+  .metric-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #5a4a3a;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 26px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .metric-sub {
+    font-size: 12px;
+    color: var(--dust);
+    margin-top: 4px;
+    line-height: 1.5;
+  }
+
+  .drought-bar-wrap {
+    margin-top: 8px;
+    height: 6px;
+    background: #1a1008;
+    border-radius: 3px;
+    overflow: hidden;
+  }
+
+  .drought-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.4s ease;
+  }
+
+  .insight-box {
+    margin-top: 16px;
+    padding: 12px;
+    background: #1a1008;
+    border-left: 3px solid var(--drought-orange);
+    border-radius: 0 3px 3px 0;
+    font-size: 13px;
+    color: var(--dust);
+    line-height: 1.6;
+  }
+
+  /* RANKING */
+  .ranking-card {
+    background: #120e09;
+    border: 1px solid #2a1f14;
+    border-radius: 4px;
+    padding: 20px;
+  }
+
+  .ranking-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-top: 4px;
+  }
+
+  .ranking-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    background: #0d0a07;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+
+  .ranking-item:hover { background: #1a1008; }
+
+  .rank-num {
+    font-size: 10px;
+    color: #3a2a1a;
+    font-weight: 600;
+    width: 16px;
+  }
+
+  .rank-name {
+    font-size: 13px;
+    color: var(--dust);
+    flex: 1;
+  }
+
+  .rank-bar-wrap {
+    width: 70px;
+    height: 4px;
+    background: #1a1008;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .rank-bar {
+    height: 100%;
+    border-radius: 2px;
+    background: var(--drought-red);
+  }
+
+  .rank-value {
+    font-size: 11px;
+    color: #7a6050;
+    width: 50px;
+    text-align: right;
+  }
+
+  /* FOOTER */
+  .footer {
+    border-top: 1px solid #cac9c9;
+    padding: 20px 48px;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .footer-text {
+    font-size: 11px;
+    color: #d0d0d0;
+    line-height: 1.8;
+  }
+
+  .footer-text a { color: #5a4a3a; }
+
+  /* Leaflet overrides */
+  .leaflet-container { background: #0d0a07 !important; }
+  .leaflet-tile { filter: grayscale(1) brightness(0.15) sepia(0.3); }
+  .leaflet-popup-content-wrapper {
+    background: #120e09;
+    border: 1px solid #2a1f14;
+    border-radius: 4px;
+    color: var(--sand);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+  }
+  .leaflet-popup-tip { background: #120e09; }
+  .leaflet-popup-content { margin: 16px 18px; font-family: 'Source Sans 3', sans-serif; }
+  .leaflet-control-zoom a {
+    background: #120e09 !important;
+    color: var(--dust) !important;
+    border-color: #2a1f14 !important;
+  }
+  .leaflet-control-attribution { display: none; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="eyebrow">Earth Observation · Humanitarian Data · Afghanistan 2020–2022</div>
+      <h1>When the Land <em>Dries Up,</em><br>People Leave</h1>
+      <p class="subtitle">
+        A satellite-based analysis of how drought devastated Afghanistan's vegetation and drove hundreds of thousands of people from their homes — visualized province by province.
+      </p>
+      <p class="data-credit">Data sources: NASA MODIS via Google Earth Engine · IOM Displacement Tracking Matrix · Analysis by Hafiz</p>
+    </div>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stats-inner">
+    <div class="stat">
+      <span class="stat-number">1.4M+</span>
+      <span class="stat-label">IDPs recorded 2020–2022</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-number">32</span>
+      <span class="stat-label">Provinces analyzed</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-number">2021</span>
+      <span class="stat-label">Peak drought year</span>
+    </div>
+    <div class="stat-divider"></div>
+    <div class="stat">
+      <span class="stat-number">−0.030</span>
+      <span class="stat-label">Worst NDVI anomaly (Badghis)</span>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div>
+    <div class="map-container">
+      <div class="map-overlay-title" id="mapTitle">Drought Severity + Displacement · 2021</div>
+      <div id="map"></div>
+    </div>
+
+    <div class="timeline">
+      <div class="timeline-label">Select Year</div>
+      <div class="year-buttons">
+        <button class="year-btn" onclick="setYear(2020)">2020</button>
+        <button class="year-btn active" onclick="setYear(2021)">2021</button>
+        <button class="year-btn" onclick="setYear(2022)">2022</button>
+      </div>
+      <div class="year-context" id="yearContext">
+        2021 — The worst year. Triple La Niña drought peak coincides with the Taliban takeover. Agriculture collapses. 255,000 people flee to Kabul alone.
+      </div>
+    </div>
+  </div>
+
+  <div class="sidebar">
+    <div class="legend-card">
+      <div class="card-title">How to Read This Map</div>
+      <div style="font-size:12px;color:#5a4a3a;margin-bottom:14px;">Province color = drought severity</div>
+      <div class="legend-item"><div class="legend-color" style="background:#c0392b"></div> Severe drought (vegetation far below normal)</div>
+      <div class="legend-item"><div class="legend-color" style="background:#e67e22"></div> Moderate drought</div>
+      <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div> Mild drought</div>
+      <div class="legend-item"><div class="legend-color" style="background:#ecf0f1"></div> Near normal</div>
+      <div class="legend-item"><div class="legend-color" style="background:#27ae60"></div> Above normal (wetter)</div>
+      <hr class="legend-divider">
+      <div style="font-size:12px;color:#5a4a3a;margin-bottom:12px;">Circle size = people displaced</div>
+      <div class="legend-circles">
+        <div class="circle-item">
+          <div class="legend-circle" style="width:12px;height:12px;"></div>
+          <span>5K</span>
+        </div>
+        <div class="circle-item">
+          <div class="legend-circle" style="width:22px;height:22px;"></div>
+          <span>30K</span>
+        </div>
+        <div class="circle-item">
+          <div class="legend-circle" style="width:36px;height:36px;"></div>
+          <span>100K</span>
+        </div>
+        <div class="circle-item">
+          <div class="legend-circle" style="width:48px;height:48px;"></div>
+          <span>255K</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:#3a2a1a;margin-top:10px;">Click any province for details</div>
+    </div>
+
+    <div class="province-card" id="provinceCard">
+      <div class="card-title">Province Detail</div>
+      <div class="province-placeholder">← Click a province on the map to see drought severity and displacement data</div>
+    </div>
+
+    <div class="ranking-card">
+      <div class="card-title">Most Displaced Provinces</div>
+      <div class="ranking-list" id="rankingList"></div>
+    </div>
+  </div>
+</div>
+
+<div class="footer">
+  <p class="footer-text">
+    Built with NASA MODIS satellite data (Google Earth Engine) · IOM DTM Baseline Mobility Assessment · NDVI anomaly computed against 2015–2019 baseline · 
+    Analysis covers 32 of 34 Afghanistan provinces · Created by Hafiz as part of independent geospatial research on climate-driven displacement.
+  </p>
+</div>
+
+<script>
+// ── DATA ──────────────────────────────────────────────────────────────────────
+const data = {
+  2020: {
+    Badakhshan:  {idp:19825,  ndvi:0.000962,  lat:36.7,  lng:70.8},
+    Badghis:     {idp:24819,  ndvi:0.006863,  lat:35.2,  lng:63.7},
+    Baghlan:     {idp:16938,  ndvi:-0.003190, lat:36.1,  lng:68.7},
+    Balkh:       {idp:112757, ndvi:-0.002875, lat:36.8,  lng:66.9},
+    Bamyan:      {idp:5135,   ndvi:-0.006840, lat:34.8,  lng:67.8},
+    Daykundi:    {idp:4763,   ndvi:-0.005526, lat:33.7,  lng:66.0},
+    Farah:       {idp:29903,  ndvi:0.008177,  lat:32.4,  lng:62.1},
+    Faryab:      {idp:9118,   ndvi:0.009428,  lat:36.1,  lng:64.9},
+    Ghazni:      {idp:14324,  ndvi:-0.002318, lat:33.5,  lng:68.4},
+    Ghor:        {idp:17443,  ndvi:-0.006181, lat:34.6,  lng:64.9},
+    Jawzjan:     {idp:24873,  ndvi:0.007636,  lat:36.9,  lng:65.6},
+    Kabul:       {idp:101839, ndvi:0.010341,  lat:34.5,  lng:69.2},
+    Kandahar:    {idp:64507,  ndvi:0.021184,  lat:31.6,  lng:65.7},
+    Kapisa:      {idp:21661,  ndvi:0.008741,  lat:34.9,  lng:69.6},
+    Khost:       {idp:5692,   ndvi:0.024752,  lat:33.3,  lng:69.9},
+    Kunar:       {idp:17175,  ndvi:0.011688,  lat:34.8,  lng:71.1},
+    Kunduz:      {idp:31297,  ndvi:-0.010774, lat:36.7,  lng:68.9},
+    Laghman:     {idp:5804,   ndvi:0.020887,  lat:34.7,  lng:70.2},
+    Logar:       {idp:3587,   ndvi:0.002198,  lat:34.0,  lng:69.2},
+    Nangarhar:   {idp:26414,  ndvi:0.030163,  lat:34.2,  lng:70.6},
+    Nimroz:      {idp:6494,   ndvi:0.004193,  lat:31.0,  lng:62.3},
+    Nuristan:    {idp:546,    ndvi:-0.003498, lat:35.3,  lng:71.0},
+    Paktika:     {idp:11991,  ndvi:0.011576,  lat:32.3,  lng:68.9},
+    Paktya:      {idp:10995,  ndvi:0.007252,  lat:33.8,  lng:69.4},
+    Panjsher:    {idp:811,    ndvi:0.001053,  lat:35.5,  lng:69.5},
+    Parwan:      {idp:16355,  ndvi:-0.001735, lat:35.1,  lng:69.0},
+    Samangan:    {idp:13663,  ndvi:-0.000883, lat:36.3,  lng:67.8},
+    'Sar-e-Pul': {idp:21231,  ndvi:0.003225,  lat:36.2,  lng:65.9},
+    Takhar:      {idp:34887,  ndvi:-0.002410, lat:37.0,  lng:69.6},
+    Uruzgan:     {idp:5040,   ndvi:0.013180,  lat:32.9,  lng:66.0},
+    Wardak:      {idp:13734,  ndvi:-0.008458, lat:34.1,  lng:68.3},
+    Zabul:       {idp:40950,  ndvi:0.009007,  lat:32.2,  lng:67.0},
+  },
+  2021: {
+    Badakhshan:  {idp:22447,  ndvi:-0.006643, lat:36.7,  lng:70.8},
+    Badghis:     {idp:27041,  ndvi:-0.029843, lat:35.2,  lng:63.7},
+    Baghlan:     {idp:52936,  ndvi:-0.000495, lat:36.1,  lng:68.7},
+    Balkh:       {idp:102770, ndvi:-0.009475, lat:36.8,  lng:66.9},
+    Bamyan:      {idp:4303,   ndvi:0.001231,  lat:34.8,  lng:67.8},
+    Daykundi:    {idp:7513,   ndvi:0.000559,  lat:33.7,  lng:66.0},
+    Farah:       {idp:22973,  ndvi:-0.004409, lat:32.4,  lng:62.1},
+    Faryab:      {idp:30986,  ndvi:-0.029572, lat:36.1,  lng:64.9},
+    Ghazni:      {idp:26593,  ndvi:0.001976,  lat:33.5,  lng:68.4},
+    Ghor:        {idp:30747,  ndvi:-0.007941, lat:34.6,  lng:64.9},
+    Jawzjan:     {idp:18991,  ndvi:-0.019173, lat:36.9,  lng:65.6},
+    Kabul:       {idp:255147, ndvi:0.004347,  lat:34.5,  lng:69.2},
+    Kandahar:    {idp:66926,  ndvi:-0.002887, lat:31.6,  lng:65.7},
+    Kapisa:      {idp:13936,  ndvi:0.006887,  lat:34.9,  lng:69.6},
+    Khost:       {idp:15523,  ndvi:0.003685,  lat:33.3,  lng:69.9},
+    Kunar:       {idp:24532,  ndvi:0.003282,  lat:34.8,  lng:71.1},
+    Kunduz:      {idp:71752,  ndvi:0.006492,  lat:36.7,  lng:68.9},
+    Laghman:     {idp:15022,  ndvi:0.008745,  lat:34.7,  lng:70.2},
+    Logar:       {idp:9054,   ndvi:0.003683,  lat:34.0,  lng:69.2},
+    Nangarhar:   {idp:60534,  ndvi:0.007022,  lat:34.2,  lng:70.6},
+    Nimroz:      {idp:16709,  ndvi:0.000405,  lat:31.0,  lng:62.3},
+    Nuristan:    {idp:3208,   ndvi:0.008449,  lat:35.3,  lng:71.0},
+    Paktika:     {idp:8680,   ndvi:-0.000433, lat:32.3,  lng:68.9},
+    Paktya:      {idp:20141,  ndvi:0.004283,  lat:33.8,  lng:69.4},
+    Panjsher:    {idp:833,    ndvi:0.005616,  lat:35.5,  lng:69.5},
+    Parwan:      {idp:21595,  ndvi:0.006295,  lat:35.1,  lng:69.0},
+    Samangan:    {idp:25828,  ndvi:-0.007352, lat:36.3,  lng:67.8},
+    'Sar-e-Pul': {idp:42567,  ndvi:-0.012187, lat:36.2,  lng:65.9},
+    Takhar:      {idp:43897,  ndvi:-0.000899, lat:37.0,  lng:69.6},
+    Uruzgan:     {idp:12452,  ndvi:-0.002477, lat:32.9,  lng:66.0},
+    Wardak:      {idp:15739,  ndvi:0.005052,  lat:34.1,  lng:68.3},
+    Zabul:       {idp:44543,  ndvi:-0.003486, lat:32.2,  lng:67.0},
+  },
+  2022: {
+    Badakhshan:  {idp:8050,   ndvi:-0.002682, lat:36.7,  lng:70.8},
+    Badghis:     {idp:8931,   ndvi:-0.017416, lat:35.2,  lng:63.7},
+    Baghlan:     {idp:7543,   ndvi:-0.013877, lat:36.1,  lng:68.7},
+    Balkh:       {idp:31780,  ndvi:-0.007252, lat:36.8,  lng:66.9},
+    Bamyan:      {idp:2932,   ndvi:-0.004390, lat:34.8,  lng:67.8},
+    Daykundi:    {idp:1185,   ndvi:-0.010743, lat:33.7,  lng:66.0},
+    Farah:       {idp:6727,   ndvi:-0.001244, lat:32.4,  lng:62.1},
+    Faryab:      {idp:14742,  ndvi:-0.001741, lat:36.1,  lng:64.9},
+    Ghazni:      {idp:8361,   ndvi:-0.005653, lat:33.5,  lng:68.4},
+    Ghor:        {idp:17772,  ndvi:-0.015666, lat:34.6,  lng:64.9},
+    Jawzjan:     {idp:563,    ndvi:-0.013356, lat:36.9,  lng:65.6},
+    Kabul:       {idp:83140,  ndvi:-0.007242, lat:34.5,  lng:69.2},
+    Kandahar:    {idp:41944,  ndvi:-0.000757, lat:31.6,  lng:65.7},
+    Kapisa:      {idp:866,    ndvi:-0.002827, lat:34.9,  lng:69.6},
+    Khost:       {idp:2740,   ndvi:0.016921,  lat:33.3,  lng:69.9},
+    Kunar:       {idp:7308,   ndvi:-0.004386, lat:34.8,  lng:71.1},
+    Kunduz:      {idp:14281,  ndvi:0.008381,  lat:36.7,  lng:68.9},
+    Laghman:     {idp:3409,   ndvi:0.000073,  lat:34.7,  lng:70.2},
+    Logar:       {idp:171,    ndvi:-0.002273, lat:34.0,  lng:69.2},
+    Nangarhar:   {idp:4109,   ndvi:0.007107,  lat:34.2,  lng:70.6},
+    Nimroz:      {idp:8657,   ndvi:-0.001827, lat:31.0,  lng:62.3},
+    Nuristan:    {idp:420,    ndvi:0.005903,  lat:35.3,  lng:71.0},
+    Paktika:     {idp:1281,   ndvi:0.000067,  lat:32.3,  lng:68.9},
+    Paktya:      {idp:3922,   ndvi:-0.001238, lat:33.8,  lng:69.4},
+    Panjsher:    {idp:0,      ndvi:0.003156,  lat:35.5,  lng:69.5},
+    Parwan:      {idp:4689,   ndvi:-0.005412, lat:35.1,  lng:69.0},
+    Samangan:    {idp:18599,  ndvi:-0.014468, lat:36.3,  lng:67.8},
+    'Sar-e-Pul': {idp:4298,   ndvi:-0.009402, lat:36.2,  lng:65.9},
+    Takhar:      {idp:15825,  ndvi:-0.001414, lat:37.0,  lng:69.6},
+    Uruzgan:     {idp:6366,   ndvi:-0.007944, lat:32.9,  lng:66.0},
+    Wardak:      {idp:809,    ndvi:-0.003991, lat:34.1,  lng:68.3},
+    Zabul:       {idp:16749,  ndvi:-0.005132, lat:32.2,  lng:67.0},
+  }
+};
+
+const yearContexts = {
+  2020: "2020 — Drought begins as La Niña sets in. Northern provinces like Balkh and Kunduz show early stress. 112,000 people already displaced to Kabul.",
+  2021: "2021 — The worst year. Triple La Niña drought peak coincides with the Taliban takeover. Agriculture collapses. 255,000 people flee to Kabul alone.",
+  2022: "2022 — Gradual recovery begins but many provinces remain below normal. Total displacement falls sharply as people have already moved or returned."
+};
+
+// ── MAP SETUP ─────────────────────────────────────────────────────────────────
+const map = L.map('map', {zoomControl: true, scrollWheelZoom: false})
+  .setView([34.5, 66.0], 6);
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '', maxZoom: 10
+}).addTo(map);
+
+let currentYear = 2021;
+let markers = [];
+let circles = [];
+
+// ── COLOR SCALE ───────────────────────────────────────────────────────────────
+function ndviColor(val) {
+  if (val < -0.020) return '#c0392b';
+  if (val < -0.010) return '#e67e22';
+  if (val < -0.003) return '#f1c40f';
+  if (val <  0.003) return '#ecf0f1';
+  if (val <  0.010) return '#82c366';
+  return '#27ae60';
+}
+
+function ndviLabel(val) {
+  if (val < -0.020) return 'Severe drought — vegetation far below normal';
+  if (val < -0.010) return 'Moderate drought';
+  if (val < -0.003) return 'Mild drought';
+  if (val <  0.003) return 'Near normal';
+  if (val <  0.010) return 'Slightly above normal';
+  return 'Well above normal — good rainfall year';
+}
+
+function circleRadius(idp) {
+  return Math.max(6, Math.sqrt(idp / Math.PI) * 0.38);
+}
+
+// ── RENDER MAP ────────────────────────────────────────────────────────────────
+function renderMap(year) {
+  // Clear
+  markers.forEach(m => map.removeLayer(m));
+  circles.forEach(c => map.removeLayer(c));
+  markers = []; circles = [];
+
+  const yearData = data[year];
+  const maxIDP = Math.max(...Object.values(yearData).map(d => d.idp));
+
+  Object.entries(yearData).forEach(([province, d]) => {
+    // Province color circle (background)
+    const bg = L.circle([d.lat, d.lng], {
+      radius: 55000,
+      fillColor: ndviColor(d.ndvi),
+      fillOpacity: 0.75,
+      color: '#1a1008',
+      weight: 1.5,
+    }).addTo(map);
+
+    bg.on('click', () => showProvince(province, d, year));
+    bg.on('mouseover', function() { this.setStyle({fillOpacity: 0.95}); });
+    bg.on('mouseout', function() { this.setStyle({fillOpacity: 0.75}); });
+    circles.push(bg);
+
+    // IDP circle (white, proportional)
+    if (d.idp > 0) {
+      const idpCircle = L.circle([d.lat, d.lng], {
+        radius: circleRadius(d.idp) * 1000,
+        fillColor: 'rgba(255,255,255,0.15)',
+        fillOpacity: 0.6,
+        color: 'rgba(255,255,255,0.5)',
+        weight: 1.5,
+      }).addTo(map);
+
+      idpCircle.on('click', () => showProvince(province, d, year));
+      markers.push(idpCircle);
+    }
+  });
+
+  // Update ranking
+  updateRanking(yearData);
+  document.getElementById('mapTitle').textContent =
+    `Drought Severity + Displacement · ${year}`;
+}
+
+// ── PROVINCE DETAIL ───────────────────────────────────────────────────────────
+function showProvince(province, d, year) {
+  const pct = (Math.abs(d.ndvi) * 100).toFixed(1);
+  const isDrought = d.ndvi < -0.003;
+  const color = ndviColor(d.ndvi);
+  const barWidth = Math.min(100, Math.abs(d.ndvi) * 1500);
+
+  const insight = isDrought
+    ? `Vegetation was <strong>${pct}% below</strong> the long-term average. This level of stress typically means crop failure and dried-up water sources in rural areas.`
+    : `Vegetation was near or above the long-term average — suggesting this province received adequate rainfall in ${year}.`;
+
+  document.getElementById('provinceCard').innerHTML = `
+    <div class="card-title">Province Detail</div>
+    <div class="province-name">${province}</div>
+    <div class="province-year">${year}</div>
+
+    <div class="metric">
+      <div class="metric-label">People Displaced</div>
+      <div class="metric-value" style="color:#e67e22">${d.idp.toLocaleString()}</div>
+      <div class="metric-sub">IDP arrivals recorded this year</div>
+    </div>
+
+    <div class="metric">
+      <div class="metric-label">Vegetation Health (NDVI Anomaly)</div>
+      <div class="metric-value" style="color:${color}">${d.ndvi > 0 ? '+' : ''}${d.ndvi.toFixed(4)}</div>
+      <div class="drought-bar-wrap">
+        <div class="drought-bar" style="width:${barWidth}%;background:${color}"></div>
+      </div>
+      <div class="metric-sub">${ndviLabel(d.ndvi)}</div>
+    </div>
+
+    <div class="insight-box">${insight}</div>
+  `;
+}
+
+// ── RANKING ───────────────────────────────────────────────────────────────────
+function updateRanking(yearData) {
+  const sorted = Object.entries(yearData)
+    .sort((a, b) => b[1].idp - a[1].idp)
+    .slice(0, 5);
+
+  const maxVal = sorted[0][1].idp;
+
+  document.getElementById('rankingList').innerHTML = sorted.map(([name, d], i) => `
+    <div class="ranking-item" onclick="showProvince('${name}', ${JSON.stringify(d)}, ${currentYear})">
+      <span class="rank-num">${i + 1}</span>
+      <span class="rank-name">${name}</span>
+      <div class="rank-bar-wrap">
+        <div class="rank-bar" style="width:${(d.idp/maxVal*100).toFixed(0)}%"></div>
+      </div>
+      <span class="rank-value">${(d.idp/1000).toFixed(0)}K</span>
+    </div>
+  `).join('');
+}
+
+// ── YEAR SWITCH ───────────────────────────────────────────────────────────────
+function setYear(year) {
+  currentYear = year;
+  document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('yearContext').textContent = yearContexts[year];
+  renderMap(year);
+}
+
+// ── INIT ──────────────────────────────────────────────────────────────────────
+renderMap(2021);
+</script>
+</body>
+</html>
