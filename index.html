@@ -83,7 +83,7 @@
   .rank-value { font-size:11px; color:#7a6050; width:44px; text-align:right; }
 
   .footer { border-top:1px solid #2a1f14; padding:18px 48px; max-width:1200px; margin:0 auto; }
-  .footer-text { font-size:11px; color:#3a2a1a; line-height:1.8; }
+  .footer-text { font-size:11px; color:#dddcdb; line-height:1.8; }
 
   .no-data-notice { position:absolute; bottom:14px; left:14px; z-index:1000; background:rgba(10,7,4,0.75); padding:6px 12px; border-radius:3px; font-size:11px; color:#5a4a3a; }
 
@@ -94,6 +94,34 @@
   .leaflet-popup-content { margin:14px 16px; font-family:'Source Sans 3',sans-serif; }
   .leaflet-control-zoom a { background:#120e09 !important; color:var(--dust) !important; border-color:#2a1f14 !important; }
   .leaflet-control-attribution { display:none; }
+
+  /* MOBILE FIX ONLY */
+  @media (max-width: 768px) {
+    .header { padding: 30px 24px 24px; }
+    h1 { font-size: 34px; line-height: 1.08; }
+    .subtitle { font-size: 14px; line-height: 1.6; }
+    .stats-bar { padding: 18px 24px; }
+    .stats-inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 26px; }
+    .stat-divider { display: none; }
+    .main { display: flex; flex-direction: column; padding: 24px; gap: 20px; }
+    #map { height: 430px; width: 100%; }
+    .sidebar { width: 100%; }
+    .card { width: 100%; }
+    .timeline { padding: 18px; }
+    .year-btn { font-size: 20px; padding: 12px 0; }
+    .year-context { font-size: 14px; line-height: 1.7; }
+    .footer { padding: 24px; }
+  }
+
+  @media (max-width: 420px) {
+    .header { padding: 26px 20px 22px; }
+    .eyebrow { font-size: 10px; letter-spacing: 2.4px; line-height: 1.8; }
+    h1 { font-size: 31px; }
+    .main { padding: 20px; }
+    #map { height: 390px; }
+    .map-overlay-title { font-size: 10px; left: 12px; top: 12px; right: 12px; line-height: 1.4; }
+    .no-data-notice { left: 12px; right: 12px; bottom: 12px; line-height: 1.5; }
+  }
 </style>
 </head>
 <body>
@@ -207,7 +235,7 @@ function circleRadius(idp) {
 
 // Map init
 const map = L.map('map', {zoomControl:true, scrollWheelZoom:false})
-  .setView([34.0, 66.0], 6);
+  .setView([34.0, 66.0], 5);
 
 L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:10}).addTo(map);
 
@@ -258,6 +286,17 @@ function renderMap(year) {
       });
     }
   }).addTo(map);
+
+  setTimeout(() => {
+    map.invalidateSize();
+
+    if (geojsonLayer) {
+      map.fitBounds(geojsonLayer.getBounds(), {
+        padding: [20, 20],
+        maxZoom: 6
+      });
+    }
+  }, 200);
 
   updateRanking(year);
   document.getElementById('mapTitle').textContent =
