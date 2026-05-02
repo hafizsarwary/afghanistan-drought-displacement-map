@@ -3,376 +3,1072 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>When the Land Dries Up — Afghanistan</title>
+<title>When the Land Dries, People Leave</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@300;400;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=Source+Sans+3:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root {
-    --sand: #f5efe6;
-    --dust: #d4b896;
-    --soil: #8b5e3c;
-    --drought-red: #c0392b;
-    --drought-orange: #e67e22;
-    --ink: #1a1008;
-    --paper: #faf7f2;
-  }
-  * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Source Sans 3',sans-serif; background:var(--ink); color:var(--sand); min-height:100vh; overflow-x:hidden; }
-
-  .header { padding:40px 48px 28px; background:var(--ink); border-bottom:1px solid #2a1f14; }
-  .header-inner { max-width:1200px; margin:0 auto; }
-  .eyebrow { font-size:11px; font-weight:600; letter-spacing:3px; text-transform:uppercase; color:var(--drought-orange); margin-bottom:10px; }
-  h1 { font-family:'Playfair Display',serif; font-size:clamp(26px,4vw,50px); font-weight:900; line-height:1.05; color:var(--sand); }
-  h1 em { color:var(--drought-red); font-style:normal; }
-  .subtitle { margin-top:12px; font-size:15px; font-weight:300; color:var(--dust); max-width:680px; line-height:1.7; }
-  .data-credit { font-size:11px; color:#5a4a3a; margin-top:8px; }
-
-  .stats-bar { background:#120e09; padding:16px 48px; border-bottom:1px solid #2a1f14; }
-  .stats-inner { max-width:1200px; margin:0 auto; display:flex; gap:40px; align-items:center; }
-  .stat { display:flex; flex-direction:column; }
-  .stat-number { font-family:'Playfair Display',serif; font-size:26px; font-weight:700; color:var(--drought-orange); line-height:1; }
-  .stat-label { font-size:10px; color:#7a6050; text-transform:uppercase; letter-spacing:1.5px; margin-top:3px; }
-  .stat-divider { width:1px; height:36px; background:#2a1f14; }
-
-  .main { max-width:1200px; margin:0 auto; padding:28px 48px 48px; display:grid; grid-template-columns:1fr 300px; gap:28px; }
-
-  .map-container { position:relative; border-radius:4px; overflow:hidden; border:1px solid #2a1f14; }
-  #map { height:740px; width:100%; background:#0d0a07; }
-  .map-overlay-title { position:absolute; top:14px; left:14px; z-index:1000; background:rgba(10,7,4,0.88); backdrop-filter:blur(8px); padding:9px 14px; border-radius:3px; border-left:3px solid var(--drought-orange); font-size:11px; font-weight:600; color:var(--sand); letter-spacing:1px; text-transform:uppercase; }
-
-  .timeline { margin-top:14px; background:#120e09; border:1px solid #2a1f14; border-radius:4px; padding:20px 24px; }
-  .timeline-label { font-size:11px; font-weight:600; letter-spacing:2px; text-transform:uppercase; color:var(--dust); margin-bottom:16px; }
-  .year-buttons { display:flex; gap:8px; }
-  .year-btn { flex:1; padding:12px 0; background:transparent; border:1px solid #2a1f14; border-radius:3px; color:#5a4a3a; font-family:'Playfair Display',serif; font-size:20px; font-weight:700; cursor:pointer; transition:all 0.2s; }
-  .year-btn:hover { color:var(--sand); border-color:#3a2a1a; }
-  .year-btn.active { background:#1a1008; border-color:var(--drought-orange); color:var(--drought-orange); }
-  .year-context { margin-top:14px; font-size:13px; color:var(--dust); line-height:1.6; min-height:42px; font-style:italic; }
-
-  .sidebar { display:flex; flex-direction:column; gap:14px; }
-
-  .card { background:#120e09; border:1px solid #2a1f14; border-radius:4px; padding:18px; }
-  .card-title { font-size:10px; font-weight:600; letter-spacing:2.5px; text-transform:uppercase; color:var(--drought-orange); margin-bottom:14px; }
-
-  .legend-item { display:flex; align-items:center; gap:10px; margin-bottom:8px; font-size:12px; color:var(--dust); }
-  .legend-color { width:24px; height:12px; border-radius:2px; flex-shrink:0; }
-  .legend-divider { border:none; border-top:1px solid #2a1f14; margin:12px 0; }
-  .legend-circles { display:flex; align-items:flex-end; gap:14px; padding:6px 0; }
-  .circle-item { display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10px; color:#5a4a3a; }
-  .legend-circle { background:rgba(255,255,255,0.12); border:1.5px solid rgba(255,255,255,0.35); border-radius:50%; }
-
-  .province-placeholder { color:#3a2a1a; font-size:13px; font-style:italic; line-height:1.6; }
-  .province-name { font-family:'Playfair Display',serif; font-size:20px; font-weight:700; color:var(--sand); margin-bottom:3px; }
-  .province-year { font-size:11px; color:var(--drought-orange); text-transform:uppercase; letter-spacing:2px; margin-bottom:16px; }
-  .metric { margin-bottom:14px; }
-  .metric-label { font-size:10px; text-transform:uppercase; letter-spacing:2px; color:#5a4a3a; margin-bottom:4px; }
-  .metric-value { font-size:24px; font-family:'Playfair Display',serif; font-weight:700; line-height:1; }
-  .metric-sub { font-size:11px; color:var(--dust); margin-top:3px; line-height:1.5; }
-  .drought-bar-wrap { margin-top:6px; height:5px; background:#1a1008; border-radius:3px; overflow:hidden; }
-  .drought-bar { height:100%; border-radius:3px; transition:width 0.4s ease; }
-  .insight-box { margin-top:14px; padding:10px 12px; background:#1a1008; border-left:3px solid var(--drought-orange); border-radius:0 3px 3px 0; font-size:12px; color:var(--dust); line-height:1.6; }
-
-  .ranking-list { display:flex; flex-direction:column; gap:6px; margin-top:4px; }
-  .ranking-item { display:flex; align-items:center; gap:8px; padding:7px 9px; background:#0d0a07; border-radius:3px; cursor:pointer; transition:background 0.15s; }
-  .ranking-item:hover { background:#1a1008; }
-  .rank-num { font-size:10px; color:#3a2a1a; font-weight:600; width:14px; }
-  .rank-name { font-size:12px; color:var(--dust); flex:1; }
-  .rank-bar-wrap { width:60px; height:3px; background:#1a1008; border-radius:2px; overflow:hidden; }
-  .rank-bar { height:100%; border-radius:2px; background:var(--drought-red); }
-  .rank-value { font-size:11px; color:#7a6050; width:44px; text-align:right; }
-
-  .footer { border-top:1px solid #2a1f14; padding:18px 48px; max-width:1200px; margin:0 auto; }
-  .footer-text { font-size:11px; color:#dddcdb; line-height:1.8; }
-
-  .no-data-notice { position:absolute; bottom:14px; left:14px; z-index:1000; background:rgba(10,7,4,0.75); padding:6px 12px; border-radius:3px; font-size:11px; color:#5a4a3a; }
-
-  .leaflet-container { background:#0d0a07 !important; }
-  .leaflet-tile { filter:grayscale(1) brightness(0.12) sepia(0.4); }
-  .leaflet-popup-content-wrapper { background:#120e09; border:1px solid #2a1f14; border-radius:4px; color:var(--sand); box-shadow:0 8px 32px rgba(0,0,0,0.6); }
-  .leaflet-popup-tip { background:#120e09; }
-  .leaflet-popup-content { margin:14px 16px; font-family:'Source Sans 3',sans-serif; }
-  .leaflet-control-zoom a { background:#120e09 !important; color:var(--dust) !important; border-color:#2a1f14 !important; }
-  .leaflet-control-attribution { display:none; }
-
-  /* MOBILE FIX ONLY */
-  @media (max-width: 768px) {
-    .header { padding: 30px 24px 24px; }
-    h1 { font-size: 34px; line-height: 1.08; }
-    .subtitle { font-size: 14px; line-height: 1.6; }
-    .stats-bar { padding: 18px 24px; }
-    .stats-inner { display: grid; grid-template-columns: repeat(2, 1fr); gap: 22px 26px; }
-    .stat-divider { display: none; }
-    .main { display: flex; flex-direction: column; padding: 24px; gap: 20px; }
-    #map { height: 430px; width: 100%; }
-    .sidebar { width: 100%; }
-    .card { width: 100%; }
-    .timeline { padding: 18px; }
-    .year-btn { font-size: 20px; padding: 12px 0; }
-    .year-context { font-size: 14px; line-height: 1.7; }
-    .footer { padding: 24px; }
+    --bg: #f4f1ec;
+    --card: #fbfaf7;
+    --card-soft: #f5efe7;
+    --ink: #101827;
+    --text: #334155;
+    --muted: #64748b;
+    --line: #e6ded3;
+    --accent: #c9653d;
+    --accent-dark: #a94d2f;
+    --red: #d9553f;
+    --orange: #e7833d;
+    --yellow: #f2c85f;
+    --normal: #e9e3d7;
+    --green: #8cbc8c;
+    --nodata: #c7c3bb;
+    --blue: #3b78bd;
+    --shadow: 0 18px 50px rgba(31, 41, 55, 0.10);
+    --soft-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
   }
 
-  @media (max-width: 420px) {
-    .header { padding: 26px 20px 22px; }
-    .eyebrow { font-size: 10px; letter-spacing: 2.4px; line-height: 1.8; }
-    h1 { font-size: 31px; }
-    .main { padding: 20px; }
-    #map { height: 390px; }
-    .map-overlay-title { font-size: 10px; left: 12px; top: 12px; right: 12px; line-height: 1.4; }
-    .no-data-notice { left: 12px; right: 12px; bottom: 12px; line-height: 1.5; }
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background:
+      radial-gradient(circle at 20% 0%, rgba(214, 127, 76, 0.10), transparent 360px),
+      linear-gradient(180deg, #f8f6f2, var(--bg));
+    color: var(--ink);
+    font-family: "Source Sans 3", Arial, sans-serif;
+  }
+
+  button { font: inherit; }
+
+  .page {
+    width: min(1880px, calc(100% - 28px));
+    margin: 14px auto;
+    padding: 32px 42px 18px;
+    border: 1px solid rgba(214, 205, 192, 0.8);
+    border-radius: 12px;
+    background: rgba(251, 250, 247, 0.92);
+    box-shadow: var(--shadow);
+  }
+
+  .top {
+    display: grid;
+    grid-template-columns: minmax(420px, 1fr) minmax(620px, 1.3fr);
+    gap: 42px;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+
+  .eyebrow {
+    margin: 0 0 10px;
+    color: #718096;
+    font-size: 14px;
+    font-weight: 800;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+  }
+
+  h1 {
+    margin: 0;
+    color: #111827;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: clamp(54px, 5.4vw, 86px);
+    font-weight: 900;
+    line-height: 0.96;
+    letter-spacing: 0;
+  }
+
+  h1 span {
+    display: block;
+    color: var(--accent);
+  }
+
+  .subtitle {
+    max-width: 760px;
+    margin: 16px 0 0;
+    color: #536173;
+    font-size: 18px;
+    line-height: 1.45;
+  }
+
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 26px;
+  }
+
+  .stat-card {
+    min-height: 220px;
+    padding: 26px 24px;
+    border: 1px solid var(--line);
+    border-radius: 11px;
+    background: linear-gradient(180deg, #fff, #fbfaf7);
+    box-shadow: var(--soft-shadow);
+  }
+
+  .icon-disc {
+    display: grid;
+    width: 58px;
+    height: 58px;
+    margin-bottom: 28px;
+    place-items: center;
+    border-radius: 50%;
+    background: #ecddca;
+    color: #20242b;
+  }
+
+  .icon-disc svg {
+    width: 28px;
+    height: 28px;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .stat-value {
+    display: block;
+    margin-bottom: 8px;
+    color: #05070b;
+    font-size: 36px;
+    font-weight: 800;
+    line-height: 0.95;
+  }
+
+  .stat-label {
+    display: block;
+    color: #253041;
+    font-size: 17px;
+    font-weight: 800;
+    line-height: 1.15;
+  }
+
+  .stat-sub {
+    display: block;
+    margin-top: 3px;
+    color: #5d6878;
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .dashboard {
+    display: grid;
+    grid-template-columns: minmax(0, 2.15fr) minmax(420px, 1fr);
+    gap: 18px;
+    align-items: stretch;
+  }
+
+  .map-card,
+  .panel,
+  .bottom-card {
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: rgba(251, 250, 247, 0.94);
+    box-shadow: var(--soft-shadow);
+  }
+
+  .map-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 572px;
+  }
+
+  #map {
+    width: 100%;
+    height: 572px;
+    background: #ede8df;
+  }
+
+  .year-control {
+    position: absolute;
+    z-index: 800;
+    top: 20px;
+    left: 22px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 0;
+  }
+
+  .year-label {
+    margin-right: 8px;
+    color: #313b4d;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  .year-btn {
+    min-width: 70px;
+    min-height: 42px;
+    border: 1px solid #d8d2ca;
+    border-radius: 7px;
+    background: rgba(255,255,255,0.94);
+    color: #1f2937;
+    cursor: pointer;
+    font-size: 18px;
+    font-weight: 800;
+    box-shadow: 0 3px 10px rgba(31,41,55,0.08);
+  }
+
+  .year-btn.active {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, #d97c54, var(--accent));
+    color: #fff;
+  }
+
+  .year-btn:hover,
+  .year-btn:focus-visible,
+  .ranking-item:hover,
+  .ranking-item:focus-visible {
+    outline: 2px solid rgba(59, 120, 189, 0.35);
+    outline-offset: 1px;
+  }
+
+  .missing-note {
+    position: absolute;
+    z-index: 800;
+    left: 20px;
+    bottom: 18px;
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 10px;
+    align-items: center;
+    max-width: 220px;
+    padding: 11px 14px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: rgba(255,255,255,0.94);
+    color: #3d4756;
+    font-size: 13px;
+    line-height: 1.25;
+    box-shadow: var(--soft-shadow);
+  }
+
+  .missing-note strong { font-weight: 900; }
+
+  .info-dot {
+    display: grid;
+    width: 18px;
+    height: 18px;
+    place-items: center;
+    border: 1.6px solid #7f8793;
+    border-radius: 50%;
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: 900;
+  }
+
+  .right-grid {
+    display: grid;
+    grid-template-rows: auto 1fr;
+    gap: 16px;
+  }
+
+  .legend-panel {
+    padding: 26px 26px 22px;
+  }
+
+  .panel-title,
+  .bottom-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 18px;
+    color: #253041;
+    font-size: 14px;
+    font-weight: 900;
+    letter-spacing: 1.8px;
+    text-transform: uppercase;
+  }
+
+  .legend-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+  }
+
+  .legend-block + .legend-block {
+    padding-left: 34px;
+    border-left: 1px solid var(--line);
+  }
+
+  .legend-heading {
+    margin: 0 0 14px;
+    color: #253041;
+    font-size: 13px;
+    font-weight: 900;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+  }
+
+  .legend-list {
+    display: grid;
+    gap: 10px;
+  }
+
+  .legend-item {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 12px;
+    align-items: center;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .swatch {
+    width: 22px;
+    height: 15px;
+    border: 1px solid rgba(0,0,0,0.12);
+    border-radius: 4px;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.35);
+  }
+
+  .bubble-legend {
+    display: grid;
+    grid-template-columns: 72px 1fr;
+    gap: 15px 20px;
+    align-items: center;
+    padding-top: 3px;
+  }
+
+  .bubble-sample {
+    justify-self: center;
+    border: 2px solid var(--blue);
+    border-radius: 50%;
+    background: rgba(59,120,189,0.16);
+  }
+
+  .bubble-label {
+    color: #334155;
+    font-size: 14px;
+    font-weight: 800;
+  }
+
+  .side-lower {
+    display: grid;
+    grid-template-columns: 1fr 1.52fr;
+    gap: 16px;
+  }
+
+  .detail-panel,
+  .ranking-panel {
+    padding: 24px 20px 20px;
+  }
+
+  .detail-card {
+    min-height: 222px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #f8f5ef;
+  }
+
+  .province-name {
+    margin: 0 0 6px;
+    color: #1f2937;
+    font-family: "Playfair Display", Georgia, serif;
+    font-size: 24px;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .severity-line {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 22px;
+    color: #4b5563;
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .severity-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+  }
+
+  .detail-middle {
+    display: grid;
+    grid-template-columns: 58px 1fr;
+    gap: 14px;
+    align-items: center;
+    margin-bottom: 22px;
+  }
+
+  .detail-bubble {
+    width: 48px;
+    height: 48px;
+    border: 2px solid var(--blue);
+    border-radius: 50%;
+    background: rgba(59,120,189,0.15);
+  }
+
+  .detail-value {
+    color: #1f2937;
+    font-size: 16px;
+    font-weight: 800;
+  }
+
+  .detail-value span {
+    display: block;
+    color: #475569;
+    font-weight: 600;
+    line-height: 1.2;
+  }
+
+  .detail-foot {
+    color: #3d4756;
+    font-size: 13px;
+    line-height: 1.35;
+  }
+
+  .detail-foot strong {
+    display: block;
+    margin-bottom: 8px;
+    color: #253041;
+    font-weight: 900;
+  }
+
+  .ranking-list {
+    display: grid;
+    gap: 9px;
+  }
+
+  .ranking-item {
+    display: grid;
+    grid-template-columns: 28px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    width: 100%;
+    min-height: 42px;
+    padding: 8px 12px;
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    background: #fff;
+    color: #1f2937;
+    cursor: pointer;
+    text-align: left;
+    box-shadow: 0 2px 8px rgba(31,41,55,0.04);
+  }
+
+  .rank-num {
+    display: grid;
+    width: 24px;
+    height: 24px;
+    place-items: center;
+    border-radius: 50%;
+    background: #eadcc9;
+    color: #7a5835;
+    font-size: 14px;
+    font-weight: 900;
+  }
+
+  .rank-name {
+    overflow: hidden;
+    color: #1f2937;
+    font-size: 15px;
+    font-weight: 900;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .rank-value {
+    color: var(--blue);
+    font-size: 15px;
+    font-weight: 900;
+  }
+
+  .bottom-grid {
+    display: grid;
+    grid-template-columns: 1.12fr 0.9fr 1.74fr;
+    gap: 16px;
+    margin-top: 18px;
+  }
+
+  .bottom-card {
+    display: grid;
+    grid-template-columns: 46px 1fr;
+    gap: 16px;
+    min-height: 150px;
+    padding: 24px 28px;
+  }
+
+  .bottom-icon svg {
+    width: 34px;
+    height: 34px;
+    stroke: #111827;
+    stroke-width: 1.7;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .bottom-card p {
+    margin: 0;
+    color: #475569;
+    font-size: 15px;
+    line-height: 1.35;
+  }
+
+  .notes-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+
+  .note {
+    min-width: 0;
+    padding-left: 2px;
+  }
+
+  .note + .note {
+    padding-left: 20px;
+    border-left: 1px solid var(--line);
+  }
+
+  .note-label {
+    margin: 0 0 6px;
+    color: #253041;
+    font-size: 12px;
+    font-weight: 900;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+  }
+
+  .loading {
+    color: #64748b;
+    font-size: 14px;
+    line-height: 1.4;
+  }
+
+  .leaflet-container {
+    background: #eee8dd !important;
+    font-family: "Source Sans 3", Arial, sans-serif;
+  }
+
+  .leaflet-tile {
+    filter: saturate(0.45) contrast(0.88) brightness(1.08);
+  }
+
+  .leaflet-control-zoom {
+    border: 0 !important;
+    box-shadow: var(--soft-shadow);
+  }
+
+  .leaflet-control-zoom a {
+    width: 42px !important;
+    height: 42px !important;
+    border: 0 !important;
+    background: rgba(255,255,255,0.95) !important;
+    color: #111827 !important;
+    font-size: 26px !important;
+    line-height: 39px !important;
+  }
+
+  .leaflet-control-zoom-in {
+    border-radius: 8px 8px 0 0 !important;
+  }
+
+  .leaflet-control-zoom-out {
+    border-radius: 0 0 8px 8px !important;
+  }
+
+  .leaflet-control-attribution {
+    display: none;
+  }
+
+  .leaflet-popup-content-wrapper {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    background: #fff;
+    color: #1f2937;
+    box-shadow: var(--soft-shadow);
+  }
+
+  .leaflet-popup-tip { background: #fff; }
+
+  .leaflet-popup-content {
+    margin: 12px 14px;
+    font-size: 14px;
+  }
+
+  @media (max-width: 1350px) {
+    .top {
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .stat-card {
+      min-height: 178px;
+    }
+
+    .icon-disc {
+      margin-bottom: 18px;
+    }
+
+    .dashboard {
+      grid-template-columns: 1fr;
+    }
+
+    .right-grid {
+      grid-template-rows: auto;
+    }
+  }
+
+  @media (max-width: 900px) {
+    .page {
+      width: min(100% - 18px, 1880px);
+      padding: 24px 20px 16px;
+    }
+
+    .stat-grid,
+    .bottom-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .bottom-grid .bottom-card:last-child {
+      grid-column: 1 / -1;
+    }
+
+    .side-lower,
+    .legend-content,
+    .notes-grid {
+      grid-template-columns: 1fr;
+    }
+
+    .legend-block + .legend-block,
+    .note + .note {
+      padding-left: 0;
+      padding-top: 18px;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+
+    #map,
+    .map-card {
+      min-height: 500px;
+      height: 500px;
+    }
+  }
+
+  @media (max-width: 620px) {
+    .page {
+      margin: 8px auto;
+      padding: 20px 14px 14px;
+      border-radius: 10px;
+    }
+
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 2.6px;
+      line-height: 1.5;
+    }
+
+    h1 {
+      font-size: 44px;
+    }
+
+    .subtitle {
+      font-size: 16px;
+    }
+
+    .stat-grid,
+    .bottom-grid {
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+
+    .stat-card {
+      display: grid;
+      grid-template-columns: 58px 1fr;
+      gap: 16px;
+      min-height: 0;
+      padding: 18px;
+      align-items: center;
+    }
+
+    .icon-disc {
+      margin: 0;
+    }
+
+    .stat-value {
+      font-size: 31px;
+    }
+
+    .dashboard,
+    .right-grid,
+    .side-lower {
+      gap: 12px;
+    }
+
+    .map-card,
+    #map {
+      min-height: 430px;
+      height: 430px;
+    }
+
+    .year-control {
+      left: 12px;
+      right: 12px;
+      top: 12px;
+      display: grid;
+      grid-template-columns: 1fr repeat(3, auto);
+      gap: 6px;
+    }
+
+    .year-label {
+      margin: 0;
+      font-size: 12px;
+      letter-spacing: 1.2px;
+    }
+
+    .year-btn {
+      min-width: 54px;
+      min-height: 38px;
+      font-size: 15px;
+    }
+
+    .missing-note {
+      left: 12px;
+      bottom: 12px;
+      max-width: calc(100% - 24px);
+    }
+
+    .legend-panel,
+    .detail-panel,
+    .ranking-panel,
+    .bottom-card {
+      padding: 18px;
+    }
+
+    .bottom-card {
+      grid-template-columns: 36px 1fr;
+      gap: 12px;
+    }
   }
 </style>
 </head>
 <body>
+<div class="page">
+  <header class="top">
+    <section>
+      <p class="eyebrow">Afghanistan drought and displacement, 2020-2022</p>
+      <h1>When the Land Dries,<span>People Leave</span></h1>
+      <p class="subtitle">Exploring how drought intensity relates to internal displacement across Afghanistan's provinces from 2020 to 2022. Red indicates severe drought. Blue bubbles show the number of people displaced.</p>
+    </section>
 
-<div class="header">
-  <div class="header-inner">
-    <div class="eyebrow">Earth Observation · Humanitarian Data · Afghanistan 2020–2022</div>
-    <h1>When the Land <em>Dries Up,</em> People Leave</h1>
-    <p class="subtitle">A satellite-based analysis of how drought devastated Afghanistan's vegetation and drove hundreds of thousands of people from their homes — visualized province by province using NASA MODIS data and IOM displacement records.</p>
-    <p class="data-credit">Data: NASA MODIS (Google Earth Engine) · IOM Displacement Tracking Matrix · Analysis by Hafizullah Sarwary</p>
-  </div>
-</div>
+    <section class="stat-grid" aria-label="Key figures">
+      <article class="stat-card">
+        <span class="icon-disc" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M7 3h8l3 3v15H7z"></path><path d="M15 3v4h4"></path><path d="M9 11h6"></path><path d="M9 15h6"></path></svg>
+        </span>
+        <div><span class="stat-value" id="totalStat">1.4M+</span><span class="stat-label">IDP records</span><span class="stat-sub">across 2020-2022</span></div>
+      </article>
+      <article class="stat-card">
+        <span class="icon-disc" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M12 21s7-5.3 7-11a7 7 0 0 0-14 0c0 5.7 7 11 7 11z"></path><circle cx="12" cy="10" r="2.5"></circle></svg>
+        </span>
+        <div><span class="stat-value" id="provinceStat">32</span><span class="stat-label">provinces</span><span class="stat-sub">with usable records</span></div>
+      </article>
+      <article class="stat-card">
+        <span class="icon-disc" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="15" rx="2"></rect><path d="M8 3v4"></path><path d="M16 3v4"></path><path d="M4 10h16"></path><path d="M8 14h2"></path><path d="M12 14h2"></path><path d="M16 14h2"></path></svg>
+        </span>
+        <div><span class="stat-value">2021</span><span class="stat-label">worst drought</span><span class="stat-sub">year in this analysis</span></div>
+      </article>
+      <article class="stat-card">
+        <span class="icon-disc" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M4 19h16"></path><path d="M5 16l4-5 4 2 5-7"></path><path d="M17 6h3v3"></path></svg>
+        </span>
+        <div><span class="stat-value">-0.030</span><span class="stat-label">lowest vegetation</span><span class="stat-sub">anomaly, Badghis</span></div>
+      </article>
+    </section>
+  </header>
 
-<div class="stats-bar">
-  <div class="stats-inner">
-    <div class="stat"><span class="stat-number">1.4M+</span><span class="stat-label">IDPs recorded 2020–2022</span></div>
-    <div class="stat-divider"></div>
-    <div class="stat"><span class="stat-number">32</span><span class="stat-label">Provinces analyzed</span></div>
-    <div class="stat-divider"></div>
-    <div class="stat"><span class="stat-number">2021</span><span class="stat-label">Peak drought year</span></div>
-    <div class="stat-divider"></div>
-    <div class="stat"><span class="stat-number">−0.030</span><span class="stat-label">Worst NDVI anomaly (Badghis)</span></div>
-  </div>
-</div>
-
-<div class="main">
-  <div>
-    <div class="map-container">
-      <div class="map-overlay-title" id="mapTitle">Drought Severity + Displacement · 2021</div>
-      <div id="map"></div>
-      <div class="no-data-notice">Helmand & Herat: no IDP data available</div>
-    </div>
-    <div class="timeline">
-      <div class="timeline-label">Select Year to Explore</div>
-      <div class="year-buttons">
-        <button class="year-btn" onclick="setYear(2020, this)">2020</button>
-        <button class="year-btn active" onclick="setYear(2021, this)">2021</button>
-        <button class="year-btn" onclick="setYear(2022, this)">2022</button>
+  <main class="dashboard">
+    <section class="map-card">
+      <div id="map" role="img" aria-label="Afghanistan drought and displacement map"></div>
+      <div class="year-control" aria-label="Pick a year">
+        <span class="year-label">Pick a year</span>
+        <button class="year-btn" type="button" onclick="setYear(2020, this)">2020</button>
+        <button class="year-btn active" type="button" onclick="setYear(2021, this)">2021</button>
+        <button class="year-btn" type="button" onclick="setYear(2022, this)">2022</button>
       </div>
-      <div class="year-context" id="yearContext">
-        2021 — The worst year. Triple La Niña drought peak coincides with the Taliban takeover. Agriculture collapses. 255,000 people flee to Kabul alone.
+      <div class="missing-note"><span class="info-dot">i</span><span><strong>Helmand and Herat:</strong><br>no IDP records in this dataset</span></div>
+    </section>
+
+    <section class="right-grid">
+      <article class="panel legend-panel">
+        <h2 class="panel-title">Legend</h2>
+        <div class="legend-content">
+          <div class="legend-block">
+            <h3 class="legend-heading">Drought intensity</h3>
+            <div class="legend-list">
+              <div class="legend-item"><span class="swatch" style="background:var(--red)"></span>Severe drought</div>
+              <div class="legend-item"><span class="swatch" style="background:var(--orange)"></span>Moderate drought</div>
+              <div class="legend-item"><span class="swatch" style="background:var(--yellow)"></span>Mild drought</div>
+              <div class="legend-item"><span class="swatch" style="background:var(--normal)"></span>Near normal</div>
+              <div class="legend-item"><span class="swatch" style="background:var(--green)"></span>Above normal vegetation</div>
+              <div class="legend-item"><span class="swatch" style="background:var(--nodata)"></span>No data</div>
+            </div>
+          </div>
+          <div class="legend-block">
+            <h3 class="legend-heading">People displaced</h3>
+            <div class="bubble-legend">
+              <span class="bubble-sample" style="width:10px;height:10px"></span><span class="bubble-label">5K</span>
+              <span class="bubble-sample" style="width:21px;height:21px"></span><span class="bubble-label">30K</span>
+              <span class="bubble-sample" style="width:34px;height:34px"></span><span class="bubble-label">100K</span>
+              <span class="bubble-sample" style="width:52px;height:52px"></span><span class="bubble-label">250K+</span>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <div class="side-lower">
+        <article class="panel detail-panel">
+          <h2 class="panel-title">Province detail <span class="info-dot">i</span></h2>
+          <div class="detail-card" id="provinceCard">
+            <p class="loading">Click any province on the map to view details here.</p>
+          </div>
+        </article>
+
+        <article class="panel ranking-panel">
+          <h2 class="panel-title" id="rankingTitle">Most displaced (2021)</h2>
+          <div class="ranking-list" id="rankingList"></div>
+        </article>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <div class="sidebar">
-    <div class="card">
-      <div class="card-title">How to Read This Map</div>
-      <div style="font-size:11px;color:#5a4a3a;margin-bottom:12px;">Province color = drought severity</div>
-      <div class="legend-item"><div class="legend-color" style="background:#c0392b"></div>Severe drought</div>
-      <div class="legend-item"><div class="legend-color" style="background:#e67e22"></div>Moderate drought</div>
-      <div class="legend-item"><div class="legend-color" style="background:#f1c40f"></div>Mild drought</div>
-      <div class="legend-item"><div class="legend-color" style="background:#ecf0f1"></div>Near normal</div>
-      <div class="legend-item"><div class="legend-color" style="background:#27ae60"></div>Above normal</div>
-      <div class="legend-item"><div class="legend-color" style="background:#3a3028"></div>No data</div>
-      <hr class="legend-divider">
-      <div style="font-size:11px;color:#ffffff;margin-top:10px;">← Click any province for details</div>
-    </div>
-
-    <div class="card" id="provinceCard" style="flex:1;min-height:220px;">
-      <div class="card-title">Province Detail</div>
-      <div class="province-placeholder">Click a province on the map to see drought severity and displacement data.</div>
-    </div>
-
-    <div class="card">
-      <div class="card-title">Most Displaced Provinces</div>
-      <div class="ranking-list" id="rankingList"></div>
-    </div>
-  </div>
-</div>
-
-<div class="footer">
-  <p class="footer-text">
-    NDVI anomaly computed against 2015–2019 baseline using NASA MODIS MOD13A3 (1km monthly). 
-    IDP data from IOM DTM Baseline Mobility Assessment Rounds 11–15. 
-    Province boundaries: geoBoundaries ADM1. · Built with Leaflet.js · 
-    Created by Hafiz — MSc Geoinformatics, Politecnico di Milano.
-  </p>
+  <section class="bottom-grid">
+    <article class="bottom-card">
+      <span class="bottom-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 18h6"></path><path d="M10 22h4"></path><path d="M8 14a6 6 0 1 1 8 0c-1.2.9-1.8 1.9-2 3h-4c-.2-1.1-.8-2.1-2-3z"></path><path d="M4 11H2"></path><path d="M22 11h-2"></path><path d="M5 4l-1.5-1.5"></path><path d="M19 4l1.5-1.5"></path></svg></span>
+      <div><h2 class="bottom-title">Key insight</h2><p id="yearInsight">2021 was the clearest crisis year in this dataset. Many northern and western provinces show drought stress, while Kabul records the largest displaced population because many people arrived there.</p></div>
+    </article>
+    <article class="bottom-card">
+      <span class="bottom-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"></path><path d="M9 3v15"></path><path d="M15 6v15"></path></svg></span>
+      <div><h2 class="bottom-title">How to read the map</h2><p>Color shows drought intensity based on vegetation conditions. Blue bubbles show the number of internally displaced people recorded in each province.</p></div>
+    </article>
+    <article class="bottom-card">
+      <span class="bottom-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="7" ry="3"></ellipse><path d="M5 5v5c0 1.7 3.1 3 7 3s7-1.3 7-3V5"></path><path d="M5 10v5c0 1.7 3.1 3 7 3s7-1.3 7-3v-5"></path><path d="M5 15v4c0 1.7 3.1 3 7 3s7-1.3 7-3v-4"></path></svg></span>
+      <div>
+        <h2 class="bottom-title">Data notes & sources</h2>
+        <div class="notes-grid">
+          <div class="note"><h3 class="note-label">Vegetation</h3><p>NDVI anomaly compares how green the land was compared with its normal 2015-2019 level.</p></div>
+          <div class="note"><h3 class="note-label">Displacement</h3><p>IDP means internally displaced person: someone forced to move within Afghanistan.</p></div>
+          <div class="note"><h3 class="note-label">Sources</h3><p>NASA MODIS via Google Earth Engine, IOM DTM records, geoBoundaries province borders. Analysis by Hafizullah Sarwary.</p></div>
+        </div>
+      </div>
+    </article>
+  </section>
 </div>
 
 <script>
-const yearContexts = {
-  2020: "2020 — Drought begins as La Niña sets in. Northern provinces like Balkh and Kunduz show early vegetation stress. Over 112,000 people already displaced to Kabul.",
-  2021: "2021 — The worst year. Triple La Niña drought peak coincides with the Taliban takeover. Agriculture collapses. 255,000 people flee to Kabul alone.",
-  2022: "2022 — Gradual recovery begins but most provinces remain below normal. Total displacement falls sharply as people have already moved or have no means to move."
+const yearInsights = {
+  2020: "2020 shows the beginning of the drought pattern. Some northern provinces already show early vegetation stress, while Kabul and Balkh record large displacement numbers.",
+  2021: "2021 was the clearest crisis year in this dataset. Many northern and western provinces show drought stress, while Kabul records the largest displaced population because many people arrived there.",
+  2022: "2022 shows partial recovery in some places, but drought stress remains visible in several provinces. Displacement totals fall, partly because many people had already moved."
 };
 
-function ndviColor(val) {
-  if (val === 0) return '#3a3028';
-  if (val < -0.020) return '#c0392b';
-  if (val < -0.010) return '#e67e22';
-  if (val < -0.003) return '#f1c40f';
-  if (val <  0.003) return '#ecf0f1';
-  if (val <  0.010) return '#82c366';
-  return '#27ae60';
-}
+const map = L.map("map", {
+  zoomControl: true,
+  scrollWheelZoom: false,
+  attributionControl: false
+}).setView([34.2, 66.7], 6);
 
-function ndviLabel(val) {
-  if (val === 0)     return 'No data available';
-  if (val < -0.020)  return 'Severe drought — vegetation far below normal';
-  if (val < -0.010)  return 'Moderate drought';
-  if (val < -0.003)  return 'Mild drought';
-  if (val <  0.003)  return 'Near normal conditions';
-  if (val <  0.010)  return 'Slightly above normal';
-  return 'Well above normal — good rainfall year';
-}
+L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}", {
+  maxZoom: 10
+}).addTo(map);
 
-function circleRadius(idp) {
-  return Math.max(4000, Math.sqrt(idp) * 820);
-}
-
-// Map init
-const map = L.map('map', {zoomControl:true, scrollWheelZoom:false})
-  .setView([34.0, 66.0], 5);
-
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {maxZoom:10}).addTo(map);
-
-let geojsonLayer = null;
-let idpCircles = [];
-let currentYear = 2021;
 let geoData = null;
+let geojsonLayer = null;
+let bubbleLayer = [];
+let currentYear = 2021;
 
-// Load GeoJSON from file
-fetch('afghanistan_data.geojson')
-  .then(r => r.json())
+fetch("afghanistan_data.geojson")
+  .then(response => response.json())
   .then(data => {
     geoData = data;
+    updateStats();
     renderMap(2021);
   })
-  .catch(err => {
-    console.error('Could not load GeoJSON:', err);
-    document.getElementById('mapTitle').textContent = '⚠ Could not load afghanistan_data.geojson';
+  .catch(() => {
+    document.getElementById("provinceCard").innerHTML = "<p class='loading'>Could not load afghanistan_data.geojson.</p>";
   });
 
+function updateStats() {
+  const years = ["2020", "2021", "2022"];
+  const total = geoData.features.reduce((sum, feature) => {
+    return sum + years.reduce((yearSum, year) => yearSum + (feature.properties.data[year]?.idp || 0), 0);
+  }, 0);
+  const usable = geoData.features.filter(feature => {
+    return years.some(year => (feature.properties.data[year]?.idp || 0) > 0);
+  }).length;
+
+  document.getElementById("totalStat").textContent = total >= 1000000 ? `${(total / 1000000).toFixed(1)}M+` : total.toLocaleString();
+  document.getElementById("provinceStat").textContent = usable;
+}
+
+function ndviColor(value) {
+  if (value === 0) return "#c7c3bb";
+  if (value < -0.020) return "#d9553f";
+  if (value < -0.010) return "#e7833d";
+  if (value < -0.003) return "#f2c85f";
+  if (value < 0.003) return "#e9e3d7";
+  if (value < 0.010) return "#9ec69a";
+  return "#7fb77e";
+}
+
+function ndviLabel(value) {
+  if (value === 0) return "No data";
+  if (value < -0.020) return "Severe drought";
+  if (value < -0.010) return "Moderate drought";
+  if (value < -0.003) return "Mild drought";
+  if (value < 0.003) return "Near normal";
+  return "Above normal vegetation";
+}
+
+function bubbleRadius(idp) {
+  return Math.max(5, Math.min(32, Math.sqrt(idp) / 17));
+}
+
+function formatK(value) {
+  if (!value) return "0";
+  return `${Math.round(value / 1000)}K`;
+}
+
 function renderMap(year) {
-  // Remove previous layers
+  if (!geoData) return;
+
+  currentYear = year;
   if (geojsonLayer) map.removeLayer(geojsonLayer);
-  idpCircles.forEach(c => map.removeLayer(c));
-  idpCircles = [];
+  bubbleLayer.forEach(circle => map.removeLayer(circle));
+  bubbleLayer = [];
 
-  const allIDP = geoData.features
-    .map(f => f.properties.data[year]?.idp || 0);
-
-  // Draw province shapes
   geojsonLayer = L.geoJSON(geoData, {
     style: feature => {
-      const d = feature.properties.data[String(year)];
-      const ndvi = d ? d.ndvi : 0;
+      const data = feature.properties.data[String(year)];
+      const ndvi = data ? data.ndvi : 0;
       return {
         fillColor: ndviColor(ndvi),
-        fillOpacity: 0.78,
-        color: '#1a1008',
-        weight: 1.2
+        fillOpacity: ndvi === 0 ? 0.48 : 0.76,
+        color: "#ffffff",
+        weight: 1.25,
+        opacity: 0.95
       };
     },
     onEachFeature: (feature, layer) => {
-      const d = feature.properties.data[String(year)];
+      const data = feature.properties.data[String(year)];
       layer.on({
-        click: () => showProvince(feature.properties.shapeName, d, year),
-        mouseover: function() { this.setStyle({fillOpacity:0.95, weight:2}); },
-        mouseout: function() { this.setStyle({fillOpacity:0.78, weight:1.2}); }
+        click: () => showProvince(feature, data, year),
+        mouseover: function() {
+          this.setStyle({ fillOpacity: 0.9, weight: 2 });
+          this.bringToFront();
+        },
+        mouseout: function() {
+          this.setStyle({ fillOpacity: data && data.ndvi === 0 ? 0.48 : 0.76, weight: 1.25 });
+        }
       });
     }
   }).addTo(map);
 
+  geojsonLayer.eachLayer(layer => {
+    const feature = layer.feature;
+    const data = feature.properties.data[String(year)];
+    if (!data || data.idp <= 0) return;
+
+    const center = layer.getBounds().getCenter();
+    const circle = L.circleMarker(center, {
+      radius: bubbleRadius(data.idp),
+      color: "#2f73ba",
+      weight: 2,
+      fillColor: "#6ea6dc",
+      fillOpacity: 0.28,
+      opacity: 0.95
+    }).addTo(map);
+
+    circle.bindPopup(`<strong>${data.province || feature.properties.shapeName}</strong><br>${data.idp.toLocaleString()} people displaced`);
+    circle.on("click", () => showProvince(feature, data, year));
+    bubbleLayer.push(circle);
+  });
+
   setTimeout(() => {
     map.invalidateSize();
-
-    if (geojsonLayer) {
-      map.fitBounds(geojsonLayer.getBounds(), {
-        padding: [20, 20],
-        maxZoom: 6
-      });
-    }
-  }, 200);
+    map.fitBounds(geojsonLayer.getBounds(), { padding: [22, 22], maxZoom: 6 });
+  }, 120);
 
   updateRanking(year);
-  document.getElementById('mapTitle').textContent =
-    `Drought Severity + Displacement · ${year}`;
+  document.getElementById("rankingTitle").textContent = `Most displaced (${year})`;
+  document.getElementById("yearInsight").textContent = yearInsights[year];
+
+  const top = getRanked(year)[0];
+  if (top) showProvince(top.feature, top.data, year);
 }
 
-function showProvince(name, d, year) {
-  if (!d) {
-    document.getElementById('provinceCard').innerHTML = `
-      <div class="card-title">Province Detail</div>
-      <div class="province-name">${name}</div>
-      <div class="province-year">${year}</div>
-      <div class="insight-box">No data available for this province.</div>`;
+function showProvince(feature, data, year) {
+  const card = document.getElementById("provinceCard");
+  const name = data?.province || feature.properties.shapeName;
+
+  if (!data) {
+    card.innerHTML = `<p class="loading">No data is available for ${name} in ${year}.</p>`;
     return;
   }
 
-  const pct = (Math.abs(d.ndvi) * 100).toFixed(1);
-  const isDrought = d.ndvi < -0.003;
-  const color = ndviColor(d.ndvi);
-  const barWidth = Math.min(100, Math.abs(d.ndvi) * 1800);
-  const displayName = d.province || name;
-
-  const insight = isDrought
-    ? `Vegetation was <strong>${pct}% below</strong> the long-term average. This level of stress typically signals crop failure and dried water sources in rural communities.`
-    : d.ndvi === 0
-    ? `No satellite data available for this province in ${year}.`
-    : `Vegetation was near or above the long-term average — suggesting adequate rainfall in ${year}. High IDP numbers here likely reflect people arriving from worse-affected provinces.`;
-
-  document.getElementById('provinceCard').innerHTML = `
-    <div class="card-title">Province Detail</div>
-    <div class="province-name">${displayName}</div>
-    <div class="province-year">${year}</div>
-    <div class="metric">
-      <div class="metric-label">People Displaced</div>
-      <div class="metric-value" style="color:#e67e22">${d.idp.toLocaleString()}</div>
-      <div class="metric-sub">IDP arrivals recorded this year</div>
+  const color = ndviColor(data.ndvi);
+  const label = ndviLabel(data.ndvi);
+  const size = Math.max(28, Math.min(62, bubbleRadius(data.idp) * 1.8));
+  card.innerHTML = `
+    <h3 class="province-name">${name}</h3>
+    <div class="severity-line"><span class="severity-dot" style="background:${color}"></span>${label}</div>
+    <div class="detail-middle">
+      <span class="detail-bubble" style="width:${size}px;height:${size}px"></span>
+      <div class="detail-value">${formatK(data.idp)}<span>people displaced</span></div>
     </div>
-    <div class="metric">
-      <div class="metric-label">Vegetation Health (NDVI Anomaly)</div>
-      <div class="metric-value" style="color:${color}">${d.ndvi > 0 ? '+' : ''}${d.ndvi.toFixed(4)}</div>
-      <div class="drought-bar-wrap">
-        <div class="drought-bar" style="width:${barWidth}%;background:${color}"></div>
-      </div>
-      <div class="metric-sub">${ndviLabel(d.ndvi)}</div>
-    </div>
-    <div class="insight-box">${insight}</div>`;
+    <div class="detail-foot">
+      <strong>IDP records (${year})</strong>
+      Click any province on the map to view details here.
+    </div>`;
+}
+
+function getRanked(year) {
+  return geoData.features
+    .map(feature => ({
+      feature,
+      data: feature.properties.data[String(year)],
+      name: feature.properties.data[String(year)]?.province || feature.properties.shapeName,
+      idp: feature.properties.data[String(year)]?.idp || 0
+    }))
+    .filter(item => item.idp > 0)
+    .sort((a, b) => b.idp - a.idp);
 }
 
 function updateRanking(year) {
-  const entries = geoData.features
-    .map(f => ({
-      name: f.properties.data[String(year)]?.province || f.properties.shapeName,
-      idp: f.properties.data[String(year)]?.idp || 0,
-      ndvi: f.properties.data[String(year)]?.ndvi || 0,
-      rawData: f.properties.data[String(year)]
-    }))
-    .filter(d => d.idp > 0)
-    .sort((a, b) => b.idp - a.idp)
-    .slice(0, 5);
-
-  const maxVal = entries[0]?.idp || 1;
-
-  document.getElementById('rankingList').innerHTML = entries.map((d, i) => `
-    <div class="ranking-item" onclick='showProvince("${d.name}", ${JSON.stringify(d.rawData)}, ${year})'>
-      <span class="rank-num">${i+1}</span>
-      <span class="rank-name">${d.name}</span>
-      <div class="rank-bar-wrap"><div class="rank-bar" style="width:${(d.idp/maxVal*100).toFixed(0)}%"></div></div>
-      <span class="rank-value">${(d.idp/1000).toFixed(0)}K</span>
-    </div>`).join('');
+  const entries = getRanked(year).slice(0, 5);
+  document.getElementById("rankingList").innerHTML = entries.map((item, index) => `
+    <button class="ranking-item" type="button" onclick='showProvinceByName("${item.name.replace(/"/g, "&quot;")}", ${year})'>
+      <span class="rank-num">${index + 1}</span>
+      <span class="rank-name">${item.name}</span>
+      <span class="rank-value">${formatK(item.idp)}</span>
+    </button>
+  `).join("");
 }
 
-function setYear(year, btn) {
-  currentYear = year;
-  document.querySelectorAll('.year-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById('yearContext').textContent = yearContexts[year];
+function showProvinceByName(name, year) {
+  const item = getRanked(year).find(entry => entry.name === name);
+  if (item) showProvince(item.feature, item.data, year);
+}
+
+function setYear(year, button) {
+  document.querySelectorAll(".year-btn").forEach(item => item.classList.remove("active"));
+  button.classList.add("active");
   renderMap(year);
 }
 </script>
